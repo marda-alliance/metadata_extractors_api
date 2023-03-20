@@ -61,7 +61,7 @@ class MardaExtractor:
     def __init__(
         self,
         entry: dict,
-        install: bool = False,
+        install: bool = True,
         preferred_mode: SupportedExecutionMethod = SupportedExecutionMethod.PYTHON,
     ):
         """Initialize the plan, optionally installing the specific parser package."""

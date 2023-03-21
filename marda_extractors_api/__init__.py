@@ -75,7 +75,7 @@ class MardaExtractor:
         subprocess.check_output(command)
 
     def execute(self, file_type: str, file_path: Path, output_file: Path | None = None):
-        if file_type not in [d["id"] for d in self.entry["supported_filetypes"]]:
+        if file_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
             raise ValueError(
                 f"File type {file_type!r} not supported by {self.entry['id']!r}"
             )

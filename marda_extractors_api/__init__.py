@@ -1,6 +1,8 @@
 import subprocess
 from enum import Enum
 from pathlib import Path
+from types import ModuleType
+from typing import Callable
 
 import httpx
 
@@ -71,8 +73,16 @@ class MardaExtractor:
             self.install()
 
     def install(self):
-        command = ["pip", "install", f"git+{self.entry['source_repository']}"]
-        subprocess.check_output(command)
+        print(f"Attempting to install {self.entry['id']}")
+        for instructions in self.entry["installation"]:
+            if instructions["method"] == "pip":
+                try:
+                    for p in instructions["packages"]:
+                        command = ["pip", "install", f"{p}"]
+                        subprocess.run(command, check=True)
+                    break
+                except Exception:
+                    continue
 
     def execute(self, file_type: str, file_path: Path, output_file: Path | None = None):
         if file_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
@@ -80,37 +90,16 @@ class MardaExtractor:
                 f"File type {file_type!r} not supported by {self.entry['id']!r}"
             )
 
-        if self.entry["id"] == "yadg":
-            self.entry["usage"].append(
-                "python:yadg.extractors.extract({{ file_type }}, {{ file_path }})"
-            )
-
-        method, command = self.parse_usage(
+        method, command, setup = self.parse_usage(
             self.entry["usage"], preferred_mode=self.preferred_mode
         )
 
         if output_file is None:
             output_file = file_path.with_suffix(".json")
 
-        def apply_template_args(
-            command, file_type: str, file_path: Path, output_file: Path | None = None
-        ):
-            if method == SupportedExecutionMethod.CLI:
-                command = command.replace("{{ file_type }}", file_type)
-                command = command.replace("{{ file_path }}", str(file_path))
-                if output_file:
-                    command = command.replace("{{ output_file }}", str(output_file))
-            else:
-                command = command.replace("{{ file_type }}", f"{str(file_type)!r}")
-                command = command.replace("{{ file_path }}", f"{str(file_path)!r}")
-                if output_file:
-                    command = command.replace(
-                        "{{ output_file }}", f"{str(output_file)!r}"
-                    )
-
-            return command
-
-        command = apply_template_args(command, file_type, file_path, output_file)
+        command = self.apply_template_args(
+            command, method, file_type, file_path, output_file
+        )
 
         if method == SupportedExecutionMethod.CLI:
             output = self._execute_cli(command)
@@ -119,37 +108,117 @@ class MardaExtractor:
             print(f"Wrote output to {output_file}")
 
         elif method == SupportedExecutionMethod.PYTHON:
-            output = self._execute_python(command)
+            output = self._execute_python(command, setup)
 
         return output
 
     def _execute_cli(self, command):
-        return subprocess.check_output(command)
+        print(f"Exexcuting {command}")
+        return subprocess.run(command, check=True)
 
-    def _execute_python(self, command):
+    @staticmethod
+    def _prepare_python(command) -> tuple[list[str], list[str], dict]:
+        function_tree = command.split("(")[0].split(".")
+        # Treat contents of first brackets as arguments
+        # TODO: this gets a bit gross with more complex arguments with nested brackets.
+        # This parser will need to be made very robust
+
+        segments = command.split("(")[1].split(")")[0].split(",")
+        kwargs = {}
+        args = []
+
+        def dequote(s: str):
+            s = s.strip()
+            if s.startswith("'") or s.endswith("'"):
+                s = s.removeprefix("'")
+                s = s.removesuffix("'")
+            elif s.startswith('"') or s.endswith('"'):
+                s = s.removeprefix('"')
+                s = s.removesuffix('"')
+            return s.strip()
+
+        def _parse_python_arg(arg: str):
+            if "=" in arg:
+                split_arg = arg.split("=")
+                if len(split_arg) > 2 or "{" in arg or "}" in arg:
+                    raise RuntimeError(f"Cannot parse {arg}")
+
+                return {dequote(arg.split("=")[0]): dequote(arg.split("=")[1])}
+            else:
+                return dequote(arg)
+
+        for arg in segments:
+            parsed_arg = _parse_python_arg(arg)
+            if isinstance(parsed_arg, dict):
+                kwargs.update(parsed_arg)
+            else:
+                args.append(parsed_arg)
+
+        return function_tree, args, kwargs
+
+    def _execute_python(self, command: str, setup: str):
         from importlib import import_module
 
-        module = ".".join(command.split("(")[0].split(".")[0:-1])
+        if " " not in setup:
+            module = setup
+        else:
+            raise RuntimeError("Only simple `import <setup>` invocation is supported")
 
-        function = command.split("(")[0].split(".")[-1]
         extractor_module = import_module(module)
-        # Treat contents of first brackets as arguments
-        args = [
-            d.strip().strip("'") for d in command.split("(")[1].split(")")[0].split(",")
-        ]
-        return getattr(extractor_module, function)(*args)
+
+        function_tree, args, kwargs = self._prepare_python(command)
+
+        def _descend_function_tree(module: ModuleType, tree: list[str]) -> Callable:
+            if tree[0] != module.__name__:
+                raise RuntimeError(
+                    "Module name mismatch: {module.__name__} != {tree[0]}"
+                )
+            _tree = tree.copy()
+            _tree.pop(0)
+            function: Callable | ModuleType = module
+            while _tree:
+                function = getattr(function, _tree.pop(0))
+            return function  # type: ignore
+
+        try:
+            function = _descend_function_tree(extractor_module, function_tree)
+        except AttributeError:
+            raise RuntimeError(f"Could not resolve {function_tree} in {module}")
+
+        return function(*args, **kwargs)
+
+    @staticmethod
+    def apply_template_args(
+        command: str,
+        method: SupportedExecutionMethod,
+        file_type: str,
+        file_path: Path,
+        output_file: Path | None = None,
+    ):
+        if method == SupportedExecutionMethod.CLI:
+            command = command.replace("{{ input_type }}", f"marda:{file_type}")
+            command = command.replace("{{ input_path }}", str(file_path))
+            if output_file:
+                command = command.replace("{{ output_path }}", str(output_file))
+        else:
+            command = command.replace("{{ input_type }}", f"{str(file_type)!r}")
+            command = command.replace("{{ input_path }}", f"{str(file_path)!r}")
+            if output_file:
+                command = command.replace("{{ output_path }}", f"{str(output_file)!r}")
+
+        return command
 
     @staticmethod
     def parse_usage(
-        usage: list[str],
+        usage: list[dict],
         preferred_mode: SupportedExecutionMethod = SupportedExecutionMethod.PYTHON,
-    ) -> tuple[SupportedExecutionMethod, str]:
-        """Parse e.g., 'cli: yadg extract {{ file_type }} {{ file_path }} {{ output_file }}'."""
+    ) -> tuple[SupportedExecutionMethod, str, str]:
         for usages in usage:
-            method = SupportedExecutionMethod(usages.split(":")[0])
-            command = "".join(usages.split(":")[1:])
+            method = SupportedExecutionMethod(usages["method"])
+            command = usages["command"]
+            setup = usages["setup"]
 
             if method == preferred_mode:
-                return method, command
+                return method, command, setup
 
-        return method, command
+        return method, command, setup

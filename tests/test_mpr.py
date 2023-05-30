@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from marda_extractors_api import extract
+from marda_extractors_api import MardaExtractor, SupportedExecutionMethod, extract
 
 
 @pytest.fixture
@@ -19,13 +19,67 @@ def test_mpr() -> Path:
 
 @pytest.mark.parametrize("preferred_mode", ["python", "cli"])
 def test_extract(tmp_path, preferred_mode, test_mpr):
+    output_file = tmp_path / "example.json"
     data = extract(
         test_mpr,
         "biologic-mpr",
-        output_file=tmp_path,
+        output_file=tmp_path / "example.json",
         preferred_mode=preferred_mode,
     )
     if preferred_mode == "python":
         assert data
     else:
-        assert tmp_path.exists()
+        assert output_file.exists()
+
+    breakpoint()
+
+
+def test_marda_extractor_template_method():
+    command = MardaExtractor.apply_template_args(
+        "parse --type=example {{ input_path }}",
+        method=SupportedExecutionMethod.CLI,
+        file_type="example",
+        file_path=Path("example.txt"),
+        output_file=Path("example.json"),
+    )
+
+    assert command == "parse --type=example example.txt"
+
+
+def test_marda_extractor_python_method():
+    function, args, kwargs = MardaExtractor._prepare_python(
+        'extract("biologic-mpr", "/path/to/file")'
+    )
+
+    assert function == ["extract"]
+    assert args == ["biologic-mpr", "/path/to/file"]
+    assert kwargs == {}
+
+    function, args, kwargs = MardaExtractor._prepare_python(
+        "extract('biologic-mpr', '/path/to/file')"
+    )
+
+    assert function == ["extract"]
+    assert args == ["biologic-mpr", "/path/to/file"]
+    assert kwargs == {}
+
+    function, args, kwargs = MardaExtractor._prepare_python(
+        'example.extractors.extract("example.txt", type="example")'
+    )
+
+    assert function == ["example", "extractors", "extract"]
+    assert args == ["example.txt"]
+    assert kwargs == {"type": "example"}
+
+    function, args, kwargs = MardaExtractor._prepare_python(
+        'extract(filename="example.txt", type="example")'
+    )
+
+    assert function == ["extract"]
+    assert args == []
+    assert kwargs == {"filename": "example.txt", "type": "example"}
+
+    with pytest.raises(RuntimeError):
+        function, args, kwargs = MardaExtractor._prepare_python(
+            'extract(filename="example.txt", type={"test": "example", "dictionary": "example"})'
+        )

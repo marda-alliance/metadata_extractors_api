@@ -117,7 +117,12 @@ class MardaExtractor:
 
     def _execute_cli(self, command):
         print(f"Exexcuting {command}")
-        return subprocess.run(command, check=True)
+        return subprocess.run(
+            command.split(),
+            check=False,
+            stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+        )
 
     @staticmethod
     def _prepare_python(command) -> tuple[list[str], list[str], dict]:

@@ -17,21 +17,21 @@ def test_mpr() -> Path:
     return download_path
 
 
-@pytest.mark.parametrize("preferred_mode", ["python", "cli"])
+@pytest.mark.parametrize(
+    "preferred_mode", [SupportedExecutionMethod.PYTHON, SupportedExecutionMethod.CLI]
+)
 def test_extract(tmp_path, preferred_mode, test_mpr):
-    output_file = tmp_path / "example.json"
+    output_file = tmp_path / "example.hdf5"
     data = extract(
         test_mpr,
         "biologic-mpr",
-        output_file=tmp_path / "example.json",
+        output_file=output_file,
         preferred_mode=preferred_mode,
     )
     if preferred_mode == "python":
         assert data
     else:
         assert output_file.exists()
-
-    breakpoint()
 
 
 def test_marda_extractor_template_method():

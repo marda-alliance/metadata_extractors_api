@@ -27,9 +27,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 requires-python = ">=3.10"
-dependencies = [
-    "httpx"
-]
+dependencies = []
 
 [project.optional-dependencies]
 test = [

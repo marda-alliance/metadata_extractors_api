@@ -1,10 +1,10 @@
+import json
 import subprocess
+import urllib.request
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import Callable
-
-import httpx
 
 __all__ = ("extract", "MardaExtractor")
 
@@ -29,12 +29,13 @@ def extract(
     if not file_path.exists():
         raise RuntimeError(f"File {file_path} does not exist")
 
-    response = httpx.get(f"{REGISTRY_BASE_URL}/filetypes/{file_type}")
-    if response.status_code != 200:
+    response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{file_type}")
+    if response.status != 200:
         raise RuntimeError(
             f"Could not find file type {file_type!r} in the registry at {response.url!r}"
         )
-    extractors = response.json()["registered_extractors"]
+    json_response = json.loads(response.read().decode("utf-8"))
+    extractors = json_response["registered_extractors"]
     if not extractors:
         raise RuntimeError(
             f"No extractors found for file type {file_type!r} in the registry"
@@ -45,11 +46,13 @@ def extract(
         )
 
     extractor = extractors[0]
-    entry = httpx.get(f"{REGISTRY_BASE_URL}/extractors/{extractor}")
-    if response.status_code != 200:
+    entry = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/extractors/{extractor}")
+    if response.status != 200:
         raise RuntimeError(f"Could not find extractor {extractor!r} in the registry")
 
-    extractor = MardaExtractor(entry.json(), preferred_mode=preferred_mode)
+    entry_json = json.loads(entry.read().decode("utf-8"))
+
+    extractor = MardaExtractor(entry_json, preferred_mode=preferred_mode)
 
     return extractor.execute(file_type, file_path, output_file)
 

@@ -28,7 +28,7 @@ def test_extract(tmp_path, preferred_mode, test_mpr):
         output_file=output_file,
         preferred_mode=preferred_mode,
     )
-    if preferred_mode == "python":
+    if preferred_mode == SupportedExecutionMethod.PYTHON:
         assert data
     else:
         assert output_file.exists()

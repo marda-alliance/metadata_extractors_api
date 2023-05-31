@@ -20,7 +20,7 @@ def extract(
     input_path: Path | str,
     input_type: str,
     output_path: Path | str | None = None,
-    preferred_mode: SupportedExecutionMethod = SupportedExecutionMethod.PYTHON,
+    preferred_mode: SupportedExecutionMethod | str = SupportedExecutionMethod.PYTHON,
 ):
     """Parse a file given its path and file type ID
     in the MaRDA registry.
@@ -31,6 +31,9 @@ def extract(
         raise RuntimeError(f"File {input_path} does not exist")
 
     output_path = Path(output_path) if output_path else None
+
+    if isinstance(preferred_mode, str):
+        preferred_mode = SupportedExecutionMethod(preferred_mode)
 
     response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{input_type}")
     if response.status != 200:

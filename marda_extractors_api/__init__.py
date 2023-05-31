@@ -17,31 +17,31 @@ class SupportedExecutionMethod(Enum):
 
 
 def extract(
-    file_path: Path | str,
-    file_type: str,
-    output_file: Path | str | None = None,
+    input_path: Path | str,
+    input_type: str,
+    output_path: Path | str | None = None,
     preferred_mode: SupportedExecutionMethod = SupportedExecutionMethod.PYTHON,
 ):
     """Parse a file given its path and file type ID
     in the MaRDA registry.
     """
 
-    file_path = Path(file_path)
-    if not file_path.exists():
-        raise RuntimeError(f"File {file_path} does not exist")
+    input_path = Path(input_path)
+    if not input_path.exists():
+        raise RuntimeError(f"File {input_path} does not exist")
 
-    output_file = Path(output_file) if output_file else None
+    output_path = Path(output_path) if output_path else None
 
-    response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{file_type}")
+    response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{input_type}")
     if response.status != 200:
         raise RuntimeError(
-            f"Could not find file type {file_type!r} in the registry at {response.url!r}"
+            f"Could not find file type {input_type!r} in the registry at {response.url!r}"
         )
     json_response = json.loads(response.read().decode("utf-8"))
     extractors = json_response["registered_extractors"]
     if not extractors:
         raise RuntimeError(
-            f"No extractors found for file type {file_type!r} in the registry"
+            f"No extractors found for file type {input_type!r} in the registry"
         )
     elif len(extractors) > 1:
         print(
@@ -57,7 +57,7 @@ def extract(
 
     extractor = MardaExtractor(entry_json, preferred_mode=preferred_mode)
 
-    return extractor.execute(file_type, file_path, output_file)
+    return extractor.execute(input_type, input_path, output_path)
 
 
 class MardaExtractor:
@@ -92,31 +92,31 @@ class MardaExtractor:
 
     def execute(
         self,
-        file_type: str,
-        file_path: Path,
-        output_file: Path | None = None,
+        input_type: str,
+        input_path: Path,
+        output_path: Path | None = None,
     ):
-        if file_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
+        if input_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
             raise ValueError(
-                f"File type {file_type!r} not supported by {self.entry['id']!r}"
+                f"File type {input_type!r} not supported by {self.entry['id']!r}"
             )
 
         method, command, setup = self.parse_usage(
             self.entry["usage"], preferred_mode=self.preferred_mode
         )
 
-        if output_file is None:
-            output_file = file_path.with_suffix(".json")
+        if output_path is None:
+            output_path = input_path.with_suffix(".json")
 
         command = self.apply_template_args(
-            command, method, file_type, file_path, output_file
+            command, method, input_type, input_path, output_path
         )
 
         if method == SupportedExecutionMethod.CLI:
             output = self._execute_cli(command)
-            if not output_file.exists():
-                raise RuntimeError(f"Output file {output_file} does not exist")
-            print(f"Wrote output to {output_file}")
+            if not output_path.exists():
+                raise RuntimeError(f"Output file {output_path} does not exist")
+            print(f"Wrote output to {output_path}")
 
         elif method == SupportedExecutionMethod.PYTHON:
             output = self._execute_python(command, setup)
@@ -207,20 +207,20 @@ class MardaExtractor:
     def apply_template_args(
         command: str,
         method: SupportedExecutionMethod,
-        file_type: str,
-        file_path: Path,
-        output_file: Path | None = None,
+        input_type: str,
+        input_path: Path,
+        output_path: Path | None = None,
     ):
         if method == SupportedExecutionMethod.CLI:
-            command = command.replace("{{ input_type }}", f"marda:{file_type}")
-            command = command.replace("{{ input_path }}", str(file_path))
-            if output_file:
-                command = command.replace("{{ output_path }}", str(output_file))
+            command = command.replace("{{ input_type }}", f"marda:{input_type}")
+            command = command.replace("{{ input_path }}", str(input_path))
+            if output_path:
+                command = command.replace("{{ output_path }}", str(output_path))
         else:
-            command = command.replace("{{ input_type }}", f"{str(file_type)!r}")
-            command = command.replace("{{ input_path }}", f"{str(file_path)!r}")
-            if output_file:
-                command = command.replace("{{ output_path }}", f"{str(output_file)!r}")
+            command = command.replace("{{ input_type }}", f"{str(input_type)!r}")
+            command = command.replace("{{ input_path }}", f"{str(input_path)!r}")
+            if output_path:
+                command = command.replace("{{ output_path }}", f"{str(output_path)!r}")
 
         return command
 

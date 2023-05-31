@@ -17,17 +17,20 @@ class SupportedExecutionMethod(Enum):
 
 
 def extract(
-    file_path: Path,
+    file_path: Path | str,
     file_type: str,
-    output_file: Path | None = None,
+    output_file: Path | str | None = None,
     preferred_mode: SupportedExecutionMethod = SupportedExecutionMethod.PYTHON,
 ):
     """Parse a file given its path and file type ID
     in the MaRDA registry.
     """
 
+    file_path = Path(file_path)
     if not file_path.exists():
         raise RuntimeError(f"File {file_path} does not exist")
+
+    output_file = Path(output_file) if output_file else None
 
     response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{file_type}")
     if response.status != 200:
@@ -87,7 +90,12 @@ class MardaExtractor:
                 except Exception:
                     continue
 
-    def execute(self, file_type: str, file_path: Path, output_file: Path | None = None):
+    def execute(
+        self,
+        file_type: str,
+        file_path: Path,
+        output_file: Path | None = None,
+    ):
         if file_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
             raise ValueError(
                 f"File type {file_type!r} not supported by {self.entry['id']!r}"

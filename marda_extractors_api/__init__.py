@@ -4,7 +4,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import Callable
+from typing import Any, Callable
 
 __all__ = ("extract", "MardaExtractor")
 
@@ -21,9 +21,26 @@ def extract(
     input_type: str,
     output_path: Path | str | None = None,
     preferred_mode: SupportedExecutionMethod | str = SupportedExecutionMethod.PYTHON,
-):
+    install: bool = True,
+) -> Any:
     """Parse a file given its path and file type ID
     in the MaRDA registry.
+
+    Parameters:
+        input_path: The path to the file to parse.
+        input_type: The ID of the file type in the MaRDA registry.
+        output_path: The path to write the output to.
+            If not provided, the output will be requested to be written
+            to a file with the same name as the input file, but with a .json extension.
+        preferred_mode: The preferred execution method.
+            If the extractor supports both Python and CLI, this will be used to determine
+            which to use. If the extractor only supports one method, this will be ignored.
+            Accepts the `SupportedExecutionMethod` values of "cli" or "python".
+        install: Whether to install the extractor package before running it. Defaults to True.
+
+    Returns:
+        The output of the extractor, either a Python object or nothing.
+
     """
 
     input_path = Path(input_path)
@@ -58,7 +75,9 @@ def extract(
 
     entry_json = json.loads(entry.read().decode("utf-8"))
 
-    extractor = MardaExtractor(entry_json, preferred_mode=preferred_mode)
+    extractor = MardaExtractor(
+        entry_json, preferred_mode=preferred_mode, install=install
+    )
 
     return extractor.execute(input_type, input_path, output_path)
 

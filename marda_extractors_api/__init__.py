@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import urllib.request
 from enum import Enum
@@ -27,7 +28,7 @@ def extract(
     in the MaRDA registry.
 
     Parameters:
-        input_path: The path to the file to parse.
+        input_path: The path or URL of the file to parse.
         input_type: The ID of the file type in the MaRDA registry.
         output_path: The path to write the output to.
             If not provided, the output will be requested to be written
@@ -42,8 +43,12 @@ def extract(
         The output of the extractor, either a Python object or nothing.
 
     """
+    if isinstance(input_path, str) and re.match("^http[s]://*", input_path):
+        url_path, _ = urllib.request.urlretrieve(input_path)
+        input_path = url_path
 
     input_path = Path(input_path)
+
     if not input_path.exists():
         raise RuntimeError(f"File {input_path} does not exist")
 

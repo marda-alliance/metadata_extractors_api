@@ -7,19 +7,23 @@ from marda_extractors_api import MardaExtractor, SupportedExecutionMethod, extra
 
 
 @pytest.fixture
-def get_test_mprs() -> Path:
-    download_dir = Path(__file__).parent / "data"
-    urls = [
+def test_mpr_urls():
+    return [
         "https://github.com/the-grey-group/datalab/raw/main/pydatalab/example_data/echem/jdb11-1_c3_gcpl_5cycles_2V-3p8V_C-24_data_C09.mpr",
         "https://github.com/marda-alliance/metadata_extractors_registry/raw/main/marda_registry/data/lfs/biologic-mpr/peis.mpr",
         "https://github.com/marda-alliance/metadata_extractors_registry/raw/main/marda_registry/data/lfs/biologic-mpr/ca.mpr",
         "https://github.com/marda-alliance/metadata_extractors_registry/raw/main/marda_registry/data/lfs/biologic-mpr/gcpl.mpr",
     ]
 
+
+@pytest.fixture
+def get_test_mprs(test_mpr_urls) -> Path:
+    download_dir = Path(__file__).parent / "data"
+
     if not download_dir.exists():
         download_dir.mkdir(parents=True, exist_ok=True)
 
-    for url in urls:
+    for url in test_mpr_urls:
         if not (download_dir / url.split("/")[-1]).exists():
             urllib.request.urlretrieve(url, download_dir / url.split("/")[-1])
 
@@ -46,6 +50,19 @@ def test_biologic_extract(tmp_path, preferred_mode, test_mprs):
             assert data
         else:
             assert output_path.exists()
+
+
+def test_biologic_extract_from_url(tmp_path, test_mpr_urls, test_mprs):
+    for ind, test_mpr in enumerate(test_mpr_urls):
+        output_path = f"mpr-{ind}.nc"
+        data = extract(
+            test_mpr,
+            "biologic-mpr",
+            output_path=output_path,
+            preferred_mode="python",
+            install=(ind == 0),
+        )
+        assert data
 
 
 def test_marda_extractor_template_method():

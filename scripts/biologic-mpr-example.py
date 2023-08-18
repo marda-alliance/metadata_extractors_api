@@ -12,8 +12,8 @@ if not download_path.exists():
 
 
 # Extract it in Python mode (default)
-data = extract(download_path, "biologic-mpr")
-print(data)
+# data = extract(download_path, "biologic-mpr")
+# print(data)
 
 # Extract it in CLI mode
-extract(download_path, "biologic-mpr", preferred_mode="cli", output_path="data")
+extract(download_path, "biologic-mpr", preferred_mode="cli", output_path="data/test.nc")

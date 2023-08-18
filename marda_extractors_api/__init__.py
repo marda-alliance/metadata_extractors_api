@@ -1,7 +1,11 @@
 import json
+import multiprocessing.managers
+import multiprocessing.shared_memory
+import pickle
 import re
 import subprocess
 import urllib.request
+import venv
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
@@ -23,6 +27,7 @@ def extract(
     output_path: Path | str | None = None,
     preferred_mode: SupportedExecutionMethod | str = SupportedExecutionMethod.PYTHON,
     install: bool = True,
+    use_venv: bool = True,
 ) -> Any:
     """Parse a file given its path and file type ID
     in the MaRDA registry.
@@ -86,7 +91,10 @@ def extract(
         entry_json = json.loads(entry.read().decode("utf-8"))
 
         extractor = MardaExtractor(
-            entry_json, preferred_mode=preferred_mode, install=install
+            entry_json,
+            preferred_mode=preferred_mode,
+            install=install,
+            use_venv=use_venv,
         )
 
         return extractor.execute(input_type, input_path, output_path)
@@ -106,20 +114,42 @@ class MardaExtractor:
         entry: dict,
         install: bool = True,
         preferred_mode: SupportedExecutionMethod = SupportedExecutionMethod.PYTHON,
+        use_venv: bool = True,
     ):
         """Initialize the plan, optionally installing the specific parser package."""
         self.entry = entry
         self.preferred_mode = preferred_mode
+
+        if use_venv:
+            self.venv_dir: Path | None = (
+                Path(__file__).parent.parent / "marda-venvs" / f"env-{self.entry['id']}"
+            )
+            venv.create(self.venv_dir, with_pip=True)
+        else:
+            self.venv_dir = None
+
         if install:
             self.install()
 
     def install(self):
+        """Follows the `pip` installation instructions for the entry inside
+        the configured venv.
+
+        """
         print(f"Attempting to install {self.entry['id']}")
         for instructions in self.entry["installation"]:
             if instructions["method"] == "pip":
                 try:
                     for p in instructions["packages"]:
-                        command = ["pip", "install", f"{p}"]
+                        command = [
+                            str(self.venv_dir / "bin" / "python")
+                            if self.venv_dir
+                            else "python",
+                            "-m",
+                            "pip",
+                            "install",
+                            f"{p}",
+                        ]
                         subprocess.run(command, check=True)
                     break
                 except Exception:
@@ -154,18 +184,20 @@ class MardaExtractor:
             print(f"Wrote output to {output_path}")
 
         elif method == SupportedExecutionMethod.PYTHON:
-            output = self._execute_python(command, setup)
+            if self.venv_dir:
+                output = self._execute_python_venv(command, setup)
+            else:
+                output = self._execute_python(command, setup)
 
         return output
 
     def _execute_cli(self, command):
-        print(f"Exexcuting {command}")
-        return subprocess.run(
-            command.split(),
-            check=False,
-            stderr=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-        )
+        if self.venv_dir:
+            raise RuntimeError("CLI execution not supported in venv yet")
+
+        print(f"Exexcuting {command=}")
+        results = subprocess.check_output(command, shell=True)
+        return results
 
     @staticmethod
     def _prepare_python(command) -> tuple[list[str], list[str], dict]:
@@ -206,6 +238,32 @@ class MardaExtractor:
                 args.append(parsed_arg)
 
         return function_tree, args, kwargs
+
+    def _execute_python_venv(self, entry_command: str, setup: str):
+        data = None
+
+        with multiprocessing.managers.SharedMemoryManager() as shmm:
+            shm = shmm.SharedMemory(size=1024 * 1024 * 1024)
+            py_cmd = (
+                r'print("Launching extractor"); import '
+                + setup
+                + "; import pickle; import multiprocessing.shared_memory; shm = multiprocessing.shared_memory.SharedMemory(name="
+                + r"'"
+                + r"{}".format(shm.name)
+                + r"'"
+                + "); data = pickle.dumps("
+                + r"{}".format(entry_command)
+                + '); shm.buf[:len(data)] = data; print("Done!")'
+            )
+            if not self.venv_dir:
+                raise RuntimeError
+            command = [str(self.venv_dir / "bin" / "python"), "-c", py_cmd]
+            subprocess.check_output(
+                command,
+            )
+            data = pickle.loads(shm.buf)
+
+        return data
 
     def _execute_python(self, command: str, setup: str):
         from importlib import import_module

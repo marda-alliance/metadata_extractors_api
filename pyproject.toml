@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [{ "yadg @ git+https://github.com/dgbowl/yadg@5.0a5"} ]
 
 [project.optional-dependencies]
 test = [

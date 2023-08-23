@@ -5,7 +5,7 @@ import urllib.request
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 __all__ = ("extract", "MardaExtractor")
 
@@ -43,48 +43,56 @@ def extract(
         The output of the extractor, either a Python object or nothing.
 
     """
-    if isinstance(input_path, str) and re.match("^http[s]://*", input_path):
-        url_path, _ = urllib.request.urlretrieve(input_path)
-        input_path = url_path
+    tmp_path: Optional[Path] = None
+    try:
+        if isinstance(input_path, str) and re.match("^http[s]://*", input_path):
+            _tmp_path, _ = urllib.request.urlretrieve(input_path)
+            tmp_path = Path(_tmp_path)
+            input_path = tmp_path
 
-    input_path = Path(input_path)
+        input_path = Path(input_path)
 
-    if not input_path.exists():
-        raise RuntimeError(f"File {input_path} does not exist")
+        if not input_path.exists():
+            raise RuntimeError(f"File {input_path} does not exist")
 
-    output_path = Path(output_path) if output_path else None
+        output_path = Path(output_path) if output_path else None
 
-    if isinstance(preferred_mode, str):
-        preferred_mode = SupportedExecutionMethod(preferred_mode)
+        if isinstance(preferred_mode, str):
+            preferred_mode = SupportedExecutionMethod(preferred_mode)
 
-    response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{input_type}")
-    if response.status != 200:
-        raise RuntimeError(
-            f"Could not find file type {input_type!r} in the registry at {response.url!r}"
+        response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{input_type}")
+        if response.status != 200:
+            raise RuntimeError(
+                f"Could not find file type {input_type!r} in the registry at {response.url!r}"
+            )
+        json_response = json.loads(response.read().decode("utf-8"))
+        extractors = json_response["registered_extractors"]
+        if not extractors:
+            raise RuntimeError(
+                f"No extractors found for file type {input_type!r} in the registry"
+            )
+        elif len(extractors) > 1:
+            print(
+                f"Discovered multiple extractors: {extractors}, using the first ({extractors[0]})"
+            )
+
+        extractor = extractors[0]
+        entry = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/extractors/{extractor}")
+        if response.status != 200:
+            raise RuntimeError(
+                f"Could not find extractor {extractor!r} in the registry"
+            )
+
+        entry_json = json.loads(entry.read().decode("utf-8"))
+
+        extractor = MardaExtractor(
+            entry_json, preferred_mode=preferred_mode, install=install
         )
-    json_response = json.loads(response.read().decode("utf-8"))
-    extractors = json_response["registered_extractors"]
-    if not extractors:
-        raise RuntimeError(
-            f"No extractors found for file type {input_type!r} in the registry"
-        )
-    elif len(extractors) > 1:
-        print(
-            f"Discovered multiple extractors: {extractors}, using the first ({extractors[0]})"
-        )
 
-    extractor = extractors[0]
-    entry = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/extractors/{extractor}")
-    if response.status != 200:
-        raise RuntimeError(f"Could not find extractor {extractor!r} in the registry")
-
-    entry_json = json.loads(entry.read().decode("utf-8"))
-
-    extractor = MardaExtractor(
-        entry_json, preferred_mode=preferred_mode, install=install
-    )
-
-    return extractor.execute(input_type, input_path, output_path)
+        return extractor.execute(input_type, input_path, output_path)
+    finally:
+        if tmp_path:
+            tmp_path.unlink()
 
 
 class MardaExtractor:

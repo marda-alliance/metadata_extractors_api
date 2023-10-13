@@ -25,6 +25,7 @@ def extract(
     input_path: Path | str,
     input_type: str,
     output_path: Path | str | None = None,
+    output_type: str | None = None,
     preferred_mode: SupportedExecutionMethod | str = SupportedExecutionMethod.PYTHON,
     install: bool = True,
     use_venv: bool = True,
@@ -97,7 +98,7 @@ def extract(
             use_venv=use_venv,
         )
 
-        return extractor.execute(input_type, input_path, output_path)
+        return extractor.execute(input_type, input_path, output_path, output_type)
     finally:
         if tmp_path:
             tmp_path.unlink()
@@ -159,6 +160,7 @@ class MardaExtractor:
         self,
         input_type: str,
         input_path: Path,
+        output_type: str | None = None,
         output_path: Path | None = None,
     ):
         if input_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
@@ -174,7 +176,21 @@ class MardaExtractor:
             output_path = input_path.with_suffix(".json")
 
         command = self.apply_template_args(
-            command, method, input_type, input_path, output_path
+            command,
+            method,
+            input_type=input_type,
+            input_path=input_path,
+            output_type=output_type,
+            output_path=output_path,
+        )
+
+        setup = self.apply_template_args(
+            setup,
+            method,
+            input_type=input_type,
+            input_path=input_path,
+            output_type=output_type,
+            output_path=output_path,
         )
 
         if method == SupportedExecutionMethod.CLI:
@@ -302,6 +318,7 @@ class MardaExtractor:
         method: SupportedExecutionMethod,
         input_type: str,
         input_path: Path,
+        output_type: str | None = None,
         output_path: Path | None = None,
     ):
         if method == SupportedExecutionMethod.CLI:
@@ -309,11 +326,15 @@ class MardaExtractor:
             command = command.replace("{{ input_path }}", str(input_path))
             if output_path:
                 command = command.replace("{{ output_path }}", str(output_path))
+            if output_type:
+                command = command.replace("{{ output_type }}", str(output_type))
         else:
             command = command.replace("{{ input_type }}", f"{str(input_type)!r}")
             command = command.replace("{{ input_path }}", f"{str(input_path)!r}")
             if output_path:
                 command = command.replace("{{ output_path }}", f"{str(output_path)!r}")
+            if output_type:
+                command = command.replace("{{ output_type }}", f"{str(output_type)!r}")
 
         return command
 

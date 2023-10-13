@@ -261,15 +261,9 @@ class MardaExtractor:
         with multiprocessing.managers.SharedMemoryManager() as shmm:
             shm = shmm.SharedMemory(size=1024 * 1024 * 1024)
             py_cmd = (
-                r'print("Launching extractor"); import '
-                + setup
-                + "; import pickle; import multiprocessing.shared_memory; shm = multiprocessing.shared_memory.SharedMemory(name="
-                + r"'"
-                + r"{}".format(shm.name)
-                + r"'"
-                + "); data = pickle.dumps("
-                + r"{}".format(entry_command)
-                + '); shm.buf[:len(data)] = data; print("Done!")'
+                f'print("Launching extractor"); import {setup}; import pickle; import multiprocessing.shared_memory;'
+                + f"shm = multiprocessing.shared_memory.SharedMemory(name={shm.name!r});"
+                + f"data = pickle.dumps({entry_command}); shm.buf[:len(data)] = data; print('Done!');"
             )
             if not self.venv_dir:
                 raise RuntimeError

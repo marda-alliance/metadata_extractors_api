@@ -184,14 +184,15 @@ class MardaExtractor:
             output_path=output_path,
         )
 
-        setup = self.apply_template_args(
-            setup,
-            method,
-            input_type=input_type,
-            input_path=input_path,
-            output_type=output_type,
-            output_path=output_path,
-        )
+        if setup is not None:
+            setup = self.apply_template_args(
+                setup,
+                method,
+                input_type=input_type,
+                input_path=input_path,
+                output_type=output_type,
+                output_path=output_path,
+            )
 
         if method == SupportedExecutionMethod.CLI:
             output = self._execute_cli(command)

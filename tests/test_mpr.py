@@ -45,6 +45,7 @@ def test_biologic_extract(tmp_path, preferred_mode, test_mprs):
             output_path=output_path,
             preferred_mode=preferred_mode,
             install=(ind == 0),
+            use_venv=preferred_mode == "python",
         )
         if preferred_mode == "python":
             assert data

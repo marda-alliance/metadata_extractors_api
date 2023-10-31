@@ -183,7 +183,7 @@ class MardaExtractor:
             output_type=output_type,
             output_path=output_path,
         )
-        
+
         if setup is not None:
             setup = self.apply_template_args(
                 setup,

@@ -17,8 +17,13 @@ REGISTRY_BASE_URL = "https://marda-registry.fly.dev"
 
 
 class SupportedExecutionMethod(Enum):
+    # TODO: would be nice to generate these directly from the LinkML schema
     CLI = "cli"
     PYTHON = "python"
+
+class SupportedInstallationMethod(Enum):
+    PIP = "pip"
+    CONDA = "conda"
 
 
 def extract(
@@ -39,6 +44,7 @@ def extract(
         output_path: The path to write the output to.
             If not provided, the output will be requested to be written
             to a file with the same name as the input file, but with a .json extension.
+        output_type: A string specifying the desired output type.
         preferred_mode: The preferred execution method.
             If the extractor supports both Python and CLI, this will be used to determine
             which to use. If the extractor only supports one method, this will be ignored.
@@ -98,7 +104,7 @@ def extract(
             use_venv=use_venv,
         )
 
-        return extractor.execute(input_type, input_path, output_path, output_type)
+        return extractor.execute(input_type=input_type, input_path=input_path, output_type=output_type, output_path=output_path)
     finally:
         if tmp_path:
             tmp_path.unlink()
@@ -139,7 +145,8 @@ class MardaExtractor:
         """
         print(f"Attempting to install {self.entry['id']}")
         for instructions in self.entry["installation"]:
-            if instructions["method"] == "pip":
+            method = SupportedInstallationMethod(instructions["method"])
+            if method == SupportedInstallationMethod.PIP:
                 try:
                     for p in instructions["packages"]:
                         command = [
@@ -155,6 +162,8 @@ class MardaExtractor:
                     break
                 except Exception:
                     continue
+            else:
+                raise RuntimeError(f"Installation method {instructions['method']} not yet supported")
 
     def execute(
         self,
@@ -195,9 +204,15 @@ class MardaExtractor:
             )
 
         if method == SupportedExecutionMethod.CLI:
-            output = self._execute_cli(command)
+            print(f"Executing {command}")
+            if self.venv_dir:
+                output = self._execute_cli_venv(command)
+            else:
+                output = self._execute_cli(command)
+
             if not output_path.exists():
-                raise RuntimeError(f"Output file {output_path} does not exist")
+                raise RuntimeError(f"Requested output file {output_path} does not exist")
+
             print(f"Wrote output to {output_path}")
 
         elif method == SupportedExecutionMethod.PYTHON:
@@ -209,11 +224,15 @@ class MardaExtractor:
         return output
 
     def _execute_cli(self, command):
-        if self.venv_dir:
-            raise RuntimeError("CLI execution not supported in venv yet")
-
         print(f"Exexcuting {command=}")
         results = subprocess.check_output(command, shell=True)
+        return results
+    
+    def _execute_cli_venv(self, command):
+        print(f"Exexcuting {command=} in venv")
+        py_cmd = "import subprocess; return subprocess.check_output(f'{command}', shell=True)"
+        command = [str(self.venv_dir / "bin" / "python"), "-c", py_cmd]
+        results = subprocess.check_output(command)
         return results
 
     @staticmethod
@@ -266,8 +285,10 @@ class MardaExtractor:
                 + f"shm = multiprocessing.shared_memory.SharedMemory(name={shm.name!r});"
                 + f"data = pickle.dumps({entry_command}); shm.buf[:len(data)] = data; print('Done!');"
             )
+
             if not self.venv_dir:
-                raise RuntimeError
+                raise RuntimeError("Something has gone wrong; no `venv_dir` set")
+
             command = [str(self.venv_dir / "bin" / "python"), "-c", py_cmd]
             subprocess.check_output(
                 command,

@@ -21,6 +21,7 @@ class SupportedExecutionMethod(Enum):
     CLI = "cli"
     PYTHON = "python"
 
+
 class SupportedInstallationMethod(Enum):
     PIP = "pip"
     CONDA = "conda"
@@ -104,7 +105,12 @@ def extract(
             use_venv=use_venv,
         )
 
-        return extractor.execute(input_type=input_type, input_path=input_path, output_type=output_type, output_path=output_path)
+        return extractor.execute(
+            input_type=input_type,
+            input_path=input_path,
+            output_type=output_type,
+            output_path=output_path,
+        )
     finally:
         if tmp_path:
             tmp_path.unlink()
@@ -163,7 +169,9 @@ class MardaExtractor:
                 except Exception:
                     continue
             else:
-                raise RuntimeError(f"Installation method {instructions['method']} not yet supported")
+                raise RuntimeError(
+                    f"Installation method {instructions['method']} not yet supported"
+                )
 
     def execute(
         self,
@@ -211,7 +219,9 @@ class MardaExtractor:
                 output = self._execute_cli(command)
 
             if not output_path.exists():
-                raise RuntimeError(f"Requested output file {output_path} does not exist")
+                raise RuntimeError(
+                    f"Requested output file {output_path} does not exist"
+                )
 
             print(f"Wrote output to {output_path}")
 
@@ -227,7 +237,7 @@ class MardaExtractor:
         print(f"Exexcuting {command=}")
         results = subprocess.check_output(command, shell=True)
         return results
-    
+
     def _execute_cli_venv(self, command):
         print(f"Exexcuting {command=} in venv")
         py_cmd = "import subprocess; return subprocess.check_output(f'{command}', shell=True)"

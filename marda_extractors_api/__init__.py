@@ -2,11 +2,11 @@ import json
 import multiprocessing.managers
 import multiprocessing.shared_memory
 import pickle
+import platform
 import re
 import subprocess
 import urllib.request
 import venv
-import platform
 from enum import Enum
 from pathlib import Path
 from types import ModuleType

@@ -6,6 +6,7 @@ import re
 import subprocess
 import urllib.request
 import venv
+import platform
 from enum import Enum
 from pathlib import Path
 from types import ModuleType
@@ -14,6 +15,7 @@ from typing import Any, Callable, Optional
 __all__ = ("extract", "MardaExtractor")
 
 REGISTRY_BASE_URL = "https://marda-registry.fly.dev"
+BIN = "Scripts" if platform.system() == "Windows" else "bin"
 
 
 class SupportedExecutionMethod(Enum):
@@ -156,7 +158,7 @@ class MardaExtractor:
                 try:
                     for p in instructions["packages"]:
                         command = [
-                            str(self.venv_dir / "bin" / "python")
+                            str(self.venv_dir / BIN / "python")
                             if self.venv_dir
                             else "python",
                             "-m",
@@ -234,14 +236,14 @@ class MardaExtractor:
         return output
 
     def _execute_cli(self, command):
-        print(f"Exexcuting {command=}")
+        print(f"Executing {command=}")
         results = subprocess.check_output(command, shell=True)
         return results
 
     def _execute_cli_venv(self, command):
-        print(f"Exexcuting {command=} in venv")
-        py_cmd = "import subprocess; return subprocess.check_output(f'{command}', shell=True)"
-        command = [str(self.venv_dir / "bin" / "python"), "-c", py_cmd]
+        print(f"Executing {command=} in venv")
+        py_cmd = f"import subprocess; subprocess.check_output(r'{command}', shell=True)"
+        command = [str(self.venv_dir / BIN / "python"), "-c", py_cmd]
         results = subprocess.check_output(command)
         return results
 
@@ -299,7 +301,7 @@ class MardaExtractor:
             if not self.venv_dir:
                 raise RuntimeError("Something has gone wrong; no `venv_dir` set")
 
-            command = [str(self.venv_dir / "bin" / "python"), "-c", py_cmd]
+            command = [str(self.venv_dir / BIN / "python"), "-c", py_cmd]
             subprocess.check_output(
                 command,
             )

@@ -216,7 +216,8 @@ class MardaExtractor:
         if method == SupportedExecutionMethod.CLI:
             print(f"Executing {command}")
             if self.venv_dir:
-                output = self._execute_cli_venv(command)
+                venv_bin_command = str(self.venv_dir / BIN / command)
+                output = self._execute_cli_venv(venv_bin_command)
             else:
                 output = self._execute_cli(command)
 

@@ -3,7 +3,6 @@
 </div>
 
 # <div align="center">MaRDA Metadata Extractors: API</div>
-<div align="center">
 
 A place for the [Metadata Extractors WG](https://github.com/marda-alliance/metadata_extractors/) to work on ideas regarding API development, wrapping existing codes and associated tools.
 

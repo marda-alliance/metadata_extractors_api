@@ -54,7 +54,7 @@ The data returned will be a Python object that the extractor supports; this may 
       across subprocesses without any extractor specific classes,
       e.g., raw JSON/Python dicts, pandas dataframes or xarray datasets (as
       optional requirements, by demand).
-- [x] A command-line for quickly running e.g., `marda-extract <filename>`
+- [ ] A command-line for quickly running e.g., `marda-extract <filename>`
 - [ ] Extractor scaffold/template/plugin
     - If it can be kept similarly low-dependency, this package could also
       implement an extractor scaffold for those who want to modify existing

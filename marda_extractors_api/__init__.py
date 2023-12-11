@@ -14,7 +14,7 @@ from typing import Any, Callable, Optional
 
 __all__ = ("extract", "MardaExtractor")
 
-REGISTRY_BASE_URL = "https://marda-registry.fly.dev"
+REGISTRY_BASE_URL = "https://marda-registry.fly.dev/api/v0.3.0"
 BIN = "Scripts" if platform.system() == "Windows" else "bin"
 
 
@@ -81,7 +81,7 @@ def extract(
                 f"Could not find file type {input_type!r} in the registry at {response.url!r}"
             )
         json_response = json.loads(response.read().decode("utf-8"))
-        extractors = json_response["registered_extractors"]
+        extractors = json_response["data"]["registered_extractors"]
         if not extractors:
             raise RuntimeError(
                 f"No extractors found for file type {input_type!r} in the registry"
@@ -98,7 +98,7 @@ def extract(
                 f"Could not find extractor {extractor!r} in the registry"
             )
 
-        entry_json = json.loads(entry.read().decode("utf-8"))
+        entry_json = json.loads(entry.read().decode("utf-8"))["data"]
 
         extractor = MardaExtractor(
             entry_json,

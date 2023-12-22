@@ -38,7 +38,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_rtd_theme",
     "myst_parser",
-    #"sphinxcontrib.autodoc_pydantic",
+    # "sphinxcontrib.autodoc_pydantic",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -64,8 +64,8 @@ html_theme_options = {
     "sticky_navigation": True,
     "navigation_depth": 6,
 }
-#html_logo = "./images/yadg.png"
-#html_favicon = "./images/yadg_ico.png"
+# html_logo = "./images/yadg.png"
+# html_favicon = "./images/yadg_ico.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -81,9 +81,12 @@ autodoc_member_order = "bysource"
 autodoc_pydantic_model_show_field_summary = False
 autodoc_pydantic_model_member_order = "bysource"
 
-#autodoc_pydantic_model_show_field_summary = False
-#autodoc_pydantic_model_member_order = "bysource"
+# autodoc_pydantic_model_show_field_summary = False
+# autodoc_pydantic_model_member_order = "bysource"
 intersphinx_mapping = {
-    "mme_schema": ("https://marda-alliance.github.io/metadata_extractors_schema/main/", None),
+    "mme_schema": (
+        "https://marda-alliance.github.io/metadata_extractors_schema/main/",
+        None,
+    ),
 }
 intersphinx_disabled_reftypes = ["*"]

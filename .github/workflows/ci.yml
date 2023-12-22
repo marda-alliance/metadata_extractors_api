@@ -9,6 +9,7 @@ on:
 jobs:
 
     lint:
+        name: Linting
         runs-on: ubuntu-latest
 
         steps:
@@ -31,6 +32,7 @@ jobs:
                   pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
 
     pytest:
+        name: Run tests
         runs-on: ubuntu-latest
         timeout-minutes: 30
 
@@ -49,3 +51,28 @@ jobs:
             - name: Run tests with pytest
               run: |
                   pytest -rs -vvv --durations=0
+
+    docs:
+        name: Test docs build
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+
+        steps:
+
+            - uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+
+            - name: Install docs deps
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -U setuptools wheel
+                  pip install .[docs]
+
+            - name: Build docs
+              run: |
+                sphinx-apidoc -o docs/source/apidoc marda_extractors_api
+                sphinx-build -b html docs/source/ public/main

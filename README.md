@@ -25,8 +25,7 @@ pip install .
 
 ### Usage
 
-You can use the metadata extractors inside your own Python code, or via the command-line:
-
+Currently, you can use the `extract` function from the `metadata_extractors_api` inside your own Python code:
 
 ```python
 from marda_extractors_api import extract
@@ -35,9 +34,25 @@ from marda_extractors_api import extract
 data = extract("./example.mpr",  "biologic-mpr")
 ```
 
-This example will install the first compatible `biologic-mpr` extractor it finds in the registry into a fresh virtualenv, and then execute it on the file at `example.mpr`, requesting that the output is written to `./example.nc`.
+This example will install the first compatible `biologic-mpr` extractor it finds in the registry into a fresh virtualenv, and then execute it on the file at `example.mpr`.
 
-The data returned will be a Python object that the extractor supports; this may require additional packages to be installed, for examples `pandas` or `xarray`, which are both supported via the installation command `pip install .[formats]` above.
+By default, the `extract` function will attempt to use the extractor's Python-based invocation (i.e. the optional `preferred_mode="python"` argument is specified). This means the extractor will be executed from within python, and the returned `data` object will be a Python object as defined (and supported) by the extractor. This may require additional packages to be installed, for examples `pandas` or `xarray`, which are both supported via the installation command `pip install .[formats]` above. If you encounter the following traceback, a missing "format" (such as `xarray` here) is the likely reason:
+
+```
+Traceback (most recent call last):
+    [...]
+    data = pickle.loads(shm.buf)
+ModuleNotFoundError: No module named 'xarray'
+```
+
+Alternatively, if the `preferred_mode="cli"` argument is specified, the extractor will be executed using its command-line invocation. This means the output of the extractor will most likely be a file, which can be further specified using the `output_type` argument:
+
+```python
+from marda_extractors_api import extract
+ret = extract("example.mpr", "biologic-mpr", output_path="output.nc", preferred_mode = "cli")
+```
+
+In this case, the `ret` will be empty bytes, and the output of the extractor should appear in the `output.nc` file.
 
 
 ### Plans
@@ -66,7 +81,7 @@ The data returned will be a Python object that the extractor supports; this may 
       formats, e.g., validating JSON output against an extractor-provided JSONSchema.
     - A testing mode that runs an extractor against all example files in the
       registry for that file type.
-- [ ] File type detection following any rules added to the schemac
+- [ ] File type detection following any rules added to the schemas
 - [ ] Support for parallel processing
     - This package could handle invoking the same extractor on a large number of files.
 - [ ] Support for other installation methods, such as `conda` and `docker`, to

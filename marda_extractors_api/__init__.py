@@ -1,3 +1,14 @@
+"""
+This script is intended as an example usage and proof-of-concept implementation of the
+API endpoints exposed on the `Extractors Registry <https://marda-registry.fly.dev/>`_.
+Currently, it can be used to:
+
+- query the `Extractors Registry <https://marda-registry.fly.dev/>`_ for extractors that
+  support a given file type,
+- install those extractors in a fresh Python virtual environment environment via `pip`,
+- invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.
+
+"""
 import json
 import multiprocessing.managers
 import multiprocessing.shared_memory
@@ -147,9 +158,13 @@ class MardaExtractor:
             self.install()
 
     def install(self):
-        """Follows the `pip` installation instructions for the entry inside
-        the configured venv.
+        """Follows the installation instructions for the entry.
 
+        Currently supports the following :doc:`mme_schema:mme_schema/InstallerTypes`
+
+           - ``"pip"``
+
+        The installation proceeds inside the appropriate venv, if configured.
         """
         print(f"Attempting to install {self.entry['id']}")
         for instructions in self.entry["installation"]:
@@ -182,6 +197,15 @@ class MardaExtractor:
         output_type: str | None = None,
         output_path: Path | None = None,
     ):
+        """Follows the required usage instructions for the entry.
+
+        Currently supports the following :doc:`mme_schema:mme_schema/UsageTypes`:
+
+          - `"cli"`
+          - `"python"`
+
+        The execution proceeds in the appropriate venv, if configured.
+        """
         if input_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
             raise ValueError(
                 f"File type {input_type!r} not supported by {self.entry['id']!r}"
@@ -350,6 +374,10 @@ class MardaExtractor:
         output_type: str | None = None,
         output_path: Path | None = None,
     ):
+        """Reference implementation of templating in MaRDA Metadata Extractor Schemas.
+
+        See the :doc:`mme_schema:mme_schema/UsageTemplate` for details of the individual arguments.
+        """
         if method == SupportedExecutionMethod.CLI:
             command = command.replace("{{ input_type }}", f"marda:{input_type}")
             command = command.replace("{{ input_path }}", str(input_path))

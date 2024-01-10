@@ -48,6 +48,8 @@ def extract(
     preferred_mode: SupportedExecutionMethod | str = SupportedExecutionMethod.PYTHON,
     install: bool = True,
     use_venv: bool = True,
+    extractor_definition: dict | None = None,
+    registry_base_url: str = REGISTRY_BASE_URL,
 ) -> Any:
     """Parse a file given its path and file type ID
     in the MaRDA registry.
@@ -64,6 +66,9 @@ def extract(
             which to use. If the extractor only supports one method, this will be ignored.
             Accepts the `SupportedExecutionMethod` values of "cli" or "python".
         install: Whether to install the extractor package before running it. Defaults to True.
+        extractor_definition: A dictionary containing the extractor definition to use instead
+            of a registry lookup.
+        registry_base_url: The base URL of the MaRDA registry to use.
 
     Returns:
         The output of the extractor, either a Python object or nothing.
@@ -86,37 +91,49 @@ def extract(
         if isinstance(preferred_mode, str):
             preferred_mode = SupportedExecutionMethod(preferred_mode)
 
-        response = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/filetypes/{input_type}")
-        if response.status != 200:
-            raise RuntimeError(
-                f"Could not find file type {input_type!r} in the registry at {response.url!r}"
+        if extractor_definition is None:
+            response = urllib.request.urlopen(
+                f"{registry_base_url}/filetypes/{input_type}"
             )
-        json_response = json.loads(response.read().decode("utf-8"))
-        extractors = json_response["data"]["registered_extractors"]
-        if not extractors:
-            raise RuntimeError(
-                f"No extractors found for file type {input_type!r} in the registry"
+            if response.status != 200:
+                raise RuntimeError(
+                    f"Could not find file type {input_type!r} in the registry at {response.url!r}"
+                )
+            json_response = json.loads(response.read().decode("utf-8"))
+            extractors = json_response["data"]["registered_extractors"]
+            if not extractors:
+                raise RuntimeError(
+                    f"No extractors found for file type {input_type!r} in the registry"
+                )
+            elif len(extractors) > 1:
+                print(
+                    f"Discovered multiple extractors: {extractors}, using the first ({extractors[0]})"
+                )
+
+            extractor = extractors[0]
+            entry = urllib.request.urlopen(
+                f"{registry_base_url}/extractors/{extractor}"
             )
-        elif len(extractors) > 1:
-            print(
-                f"Discovered multiple extractors: {extractors}, using the first ({extractors[0]})"
+            if response.status != 200:
+                raise RuntimeError(
+                    f"Could not find extractor {extractor!r} in the registry"
+                )
+            entry_json = json.loads(entry.read().decode("utf-8"))["data"]
+
+            extractor = MardaExtractor(
+                entry_json,
+                preferred_mode=preferred_mode,
+                install=install,
+                use_venv=use_venv,
             )
 
-        extractor = extractors[0]
-        entry = urllib.request.urlopen(f"{REGISTRY_BASE_URL}/extractors/{extractor}")
-        if response.status != 200:
-            raise RuntimeError(
-                f"Could not find extractor {extractor!r} in the registry"
+        else:
+            extractor = MardaExtractor(
+                extractor_definition,
+                preferred_mode=preferred_mode,
+                install=install,
+                use_venv=use_venv,
             )
-
-        entry_json = json.loads(entry.read().decode("utf-8"))["data"]
-
-        extractor = MardaExtractor(
-            entry_json,
-            preferred_mode=preferred_mode,
-            install=install,
-            use_venv=use_venv,
-        )
 
         return extractor.execute(
             input_type=input_type,
@@ -166,7 +183,12 @@ class MardaExtractor:
 
         The installation proceeds inside the appropriate venv, if configured.
         """
-        print(f"Attempting to install {self.entry['id']}")
+        print(f"Attempting to install {self.entry.get('id', self.entry)}")
+        if not self.entry.get("installation"):
+            raise RuntimeError(
+                "No installation instructions provided for {self.entry.get('id', self.entry)}"
+            )
+
         for instructions in self.entry["installation"]:
             method = SupportedInstallationMethod(instructions["method"])
             if method == SupportedInstallationMethod.PIP:

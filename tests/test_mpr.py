@@ -52,7 +52,7 @@ def test_biologic_extract(tmp_path, preferred_mode, test_mprs):
             assert output_path.exists()
 
 
-def test_biologic_extract_from_url(tmp_path, test_mpr_urls, test_mprs):
+def test_biologic_extract_from_url(tmp_path, test_mpr_urls):
     for ind, test_mpr in enumerate(test_mpr_urls):
         output_path = f"mpr-{ind}.nc"
         data = extract(
@@ -61,6 +61,38 @@ def test_biologic_extract_from_url(tmp_path, test_mpr_urls, test_mprs):
             output_path=output_path,
             preferred_mode="python",
             install=(ind == 0),
+        )
+        assert data
+
+
+def test_biologic_extract_no_registry(test_mprs):
+    for ind, test_mpr in enumerate(test_mprs):
+        output_path = f"mpr-{ind}.nc"
+        data = extract(
+            test_mpr,
+            "biologic-mpr",
+            output_path=output_path,
+            preferred_mode="python",
+            install=(ind == 0),
+            extractor_definition={
+                "id": "yadg",
+                "supported_filetypes": [{"id": "biologic-mpr"}],
+                "usage": [
+                    {
+                        "method": "python",
+                        "setup": "yadg",
+                        "command": "yadg.extractors.extract({{ input_type }}, {{ input_path }})",
+                    }
+                ],
+                "installation": [
+                    {
+                        "method": "pip",
+                        "requires_python": ">=3.9",
+                        "requirements": None,
+                        "packages": ["yadg~=5.0"],
+                    }
+                ],
+            },
         )
         assert data
 

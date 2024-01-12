@@ -4,6 +4,14 @@
 
 # <div align="center">MaRDA Metadata Extractors: API</div>
 
+<div align="center">
+
+
+[![Documentation](https://badgen.net/badge/docs/marda-alliance.github.io/blue?icon=firefox)](https://marda-alliance.github.io/metadata_extractors_api)
+![Github status](https://badgen.net/github/checks/marda-alliance/metadata_extractors_api/?icon=github)
+
+</div>
+
 A place for the [Metadata Extractors WG](https://github.com/marda-alliance/metadata_extractors/) to work on ideas regarding API development, wrapping existing codes and associated tools.
 
 ## `marda_extractors_api` package

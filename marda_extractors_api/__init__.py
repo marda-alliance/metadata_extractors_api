@@ -228,7 +228,12 @@ class MardaExtractor:
 
         The execution proceeds in the appropriate venv, if configured.
         """
-        if input_type not in {_["id"] for _ in self.entry["supported_filetypes"]}:
+        template = None
+        for filetype in self.entry["supported_filetypes"]:
+            if filetype["id"] == input_type:
+                template = filetype.get("template", {})
+                break
+        else:
             raise ValueError(
                 f"File type {input_type!r} not supported by {self.entry['id']!r}"
             )
@@ -247,6 +252,7 @@ class MardaExtractor:
             input_path=input_path,
             output_type=output_type,
             output_path=output_path,
+            additional_template=template,
         )
 
         if setup is not None:
@@ -257,6 +263,7 @@ class MardaExtractor:
                 input_path=input_path,
                 output_type=output_type,
                 output_path=output_path,
+                additional_template=template,
             )
 
         if method == SupportedExecutionMethod.CLI:
@@ -395,25 +402,43 @@ class MardaExtractor:
         input_path: Path,
         output_type: str | None = None,
         output_path: Path | None = None,
-    ):
+        additional_template: dict | None = None,
+    ) -> str:
         """Reference implementation of templating in MaRDA Metadata Extractor Schemas.
 
         See the :doc:`mme_schema:mme_schema/UsageTemplate` for details of the individual arguments.
+
+        Parameters:
+            command: The command to apply the template to.
+            method: The execution method to use.
+            input_type: The input type to use.
+            input_path: The input path to use.
+            output_type: The output type to use.
+            output_path: The output path to use.
+            additional_template: Additional template arguments to use, which
+                overwrite the default arguments.
+
+        Returns:
+            The templated command.
+
         """
-        if method == SupportedExecutionMethod.CLI:
-            command = command.replace("{{ input_type }}", f"marda:{input_type}")
-            command = command.replace("{{ input_path }}", str(input_path))
-            if output_path:
-                command = command.replace("{{ output_path }}", str(output_path))
-            if output_type:
-                command = command.replace("{{ output_type }}", str(output_type))
-        else:
-            command = command.replace("{{ input_type }}", f"{str(input_type)!r}")
-            command = command.replace("{{ input_path }}", f"{str(input_path)!r}")
-            if output_path:
-                command = command.replace("{{ output_path }}", f"{str(output_path)!r}")
-            if output_type:
-                command = command.replace("{{ output_type }}", f"{str(output_type)!r}")
+        if additional_template is None:
+            additional_template = {}
+        default_fields = {"input_type", "input_path", "output_type", "output_path"}
+        for field in default_fields:
+            value = additional_template.get(field) or locals()[field]
+            if method == SupportedExecutionMethod.CLI:
+                command = command.replace(f"{{{{ {field} }}}}", str(value))
+            else:
+                command = command.replace(f"{{{{ {field} }}}}", f"{str(value)!r}")
+
+        for field in additional_template:
+            if field not in default_fields:
+                value = additional_template[field]
+                if method == SupportedExecutionMethod.CLI:
+                    command = command.replace(f"{{{{ {field} }}}}", str(value))
+                else:
+                    command = command.replace(f"{{{{ {field} }}}}", f"{str(value)!r}")
 
         return command
 

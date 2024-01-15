@@ -432,14 +432,6 @@ class MardaExtractor:
             else:
                 command = command.replace(f"{{{{ {field} }}}}", f"{str(value)!r}")
 
-        for field in additional_template:
-            if field not in default_fields:
-                value = additional_template[field]
-                if method == SupportedExecutionMethod.CLI:
-                    command = command.replace(f"{{{{ {field} }}}}", str(value))
-                else:
-                    command = command.replace(f"{{{{ {field} }}}}", f"{str(value)!r}")
-
         return command
 
     @staticmethod

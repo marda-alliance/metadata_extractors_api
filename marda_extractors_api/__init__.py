@@ -231,7 +231,7 @@ class MardaExtractor:
         template = None
         for filetype in self.entry["supported_filetypes"]:
             if filetype["id"] == input_type:
-                template = filetype.get("template", {})
+                template = filetype.get("template")
                 break
         else:
             raise ValueError(
@@ -427,6 +427,8 @@ class MardaExtractor:
         default_fields = {"input_type", "input_path", "output_type", "output_path"}
         for field in default_fields:
             value = additional_template.get(field) or locals()[field]
+            if value is None:
+                continue
             if method == SupportedExecutionMethod.CLI:
                 command = command.replace(f"{{{{ {field} }}}}", str(value))
             else:

@@ -53,10 +53,10 @@ jobs:
                   pytest -rs -vvv --durations=0
 
     docs:
-      name: Test docs build
-      uses: ./.github/workflows/build-docs.yml
+        name: Test docs build
+        uses: ./.github/workflows/build-docs.yml
 
     deploy_pages:
-      if: ${{ github.event_name == "push" }}
-      needs: [docs]
-      uses: ./.github/workflows/deploy-pages.yml
+        if: ${{ github.event_name == "push" }}
+        needs: [docs]
+        uses: ./.github/workflows/deploy-pages.yml

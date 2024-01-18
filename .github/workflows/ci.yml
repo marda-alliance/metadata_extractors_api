@@ -57,6 +57,7 @@ jobs:
         uses: ./.github/workflows/build-docs.yml
 
     deploy_pages:
+        if: github.ref == 'refs/heads/main'
         name: Deploy docs
         needs: [docs]
         uses: ./.github/workflows/deploy-pages.yml

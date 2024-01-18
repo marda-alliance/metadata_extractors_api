@@ -1,7 +1,0 @@
-marda_extractors_api
-====================
-
-.. toctree::
-   :maxdepth: 4
-
-   marda_extractors_api

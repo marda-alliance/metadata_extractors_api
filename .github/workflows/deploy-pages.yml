@@ -24,9 +24,6 @@ jobs:
             - name: Untar archive
               run: tar -xvf public.tar
 
-            - name: Create index
-              run: cp docs/source/_templates/index.template public/index.html
-
             - uses: peaceiris/actions-gh-pages@v3
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -57,6 +57,5 @@ jobs:
         uses: ./.github/workflows/build-docs.yml
 
     deploy_pages:
-        if: ${{ github.event_name == "push" }}
         needs: [docs]
         uses: ./.github/workflows/deploy-pages.yml

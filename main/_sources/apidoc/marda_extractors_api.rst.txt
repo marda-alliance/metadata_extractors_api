@@ -1,0 +1,10 @@
+marda\_extractors\_api package
+==============================
+
+Module contents
+---------------
+
+.. automodule:: marda_extractors_api
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ on:
 
 jobs:
     deploy-pages:
+        name: Deploy docs
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3

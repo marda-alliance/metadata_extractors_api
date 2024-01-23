@@ -17,6 +17,7 @@ import platform
 import re
 import subprocess
 import urllib.request
+import urllib.error
 import venv
 from enum import Enum
 from pathlib import Path
@@ -92,12 +93,12 @@ def extract(
             preferred_mode = SupportedExecutionMethod(preferred_mode)
 
         if extractor_definition is None:
-            response = urllib.request.urlopen(
-                f"{registry_base_url}/filetypes/{input_type}"
-            )
-            if response.status != 200:
+            try:
+                request_url = f"{registry_base_url}/filetypes/{input_type}"
+                response = urllib.request.urlopen(request_url)
+            except urllib.error.HTTPError as e:
                 raise RuntimeError(
-                    f"Could not find file type {input_type!r} in the registry at {response.url!r}"
+                    f"Could not find file type {input_type!r} in the registry at {request_url!r}.\nFull error: {e}"
                 )
             json_response = json.loads(response.read().decode("utf-8"))
             extractors = json_response["data"]["registered_extractors"]
@@ -111,12 +112,12 @@ def extract(
                 )
 
             extractor = extractors[0]
-            entry = urllib.request.urlopen(
-                f"{registry_base_url}/extractors/{extractor}"
-            )
-            if response.status != 200:
+            try:
+                request_url = f"{registry_base_url}/extractors/{extractor}"
+                entry = urllib.request.urlopen(request_url)
+            except urllib.error.HTTPError as e:
                 raise RuntimeError(
-                    f"Could not find extractor {extractor!r} in the registry"
+                    f"Could not find extractor {extractor!r} in the registry at {request_url!r}.\nFull error: {e}"
                 )
             entry_json = json.loads(entry.read().decode("utf-8"))["data"]
 

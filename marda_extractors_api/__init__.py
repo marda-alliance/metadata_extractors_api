@@ -16,8 +16,8 @@ import pickle
 import platform
 import re
 import subprocess
-import urllib.request
 import urllib.error
+import urllib.request
 import venv
 from enum import Enum
 from pathlib import Path

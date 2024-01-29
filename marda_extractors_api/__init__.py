@@ -9,6 +9,7 @@ Currently, it can be used to:
 - invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.
 
 """
+
 import json
 import multiprocessing.managers
 import multiprocessing.shared_memory
@@ -196,9 +197,11 @@ class MardaExtractor:
                 try:
                     for p in instructions["packages"]:
                         command = [
-                            str(self.venv_dir / BIN / "python")
-                            if self.venv_dir
-                            else "python",
+                            (
+                                str(self.venv_dir / BIN / "python")
+                                if self.venv_dir
+                                else "python"
+                            ),
                             "-m",
                             "pip",
                             "install",

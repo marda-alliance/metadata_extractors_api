@@ -1,48 +1,47 @@
 <div align="center" style="padding-bottom: 1em;">
-<img width="100px" align="center" src="https://avatars.githubusercontent.com/u/74017645?s=200&v=4">
+<img width="100px" align="center" src="https://avatars.githubusercontent.com/u/166528759">
 </div>
 
-# <div align="center">MaRDA Metadata Extractors: API</div>
+# <div align="center">Datatractor Beam: <br/> Reference implementation of the Datatractor API</div>
 
 <div align="center">
 
 
-[![Documentation](https://badgen.net/badge/docs/marda-alliance.github.io/blue?icon=firefox)](https://marda-alliance.github.io/metadata_extractors_api)
-![Github status](https://badgen.net/github/checks/marda-alliance/metadata_extractors_api/?icon=github)
+[![Documentation](https://badgen.net/badge/docs/datatractor.github.io/blue?icon=firefox)](https://datatractor.github.io/beam)
+![Github status](https://badgen.net/github/checks/datatractor/beam/?icon=github)
 
 </div>
 
-A place for the [Metadata Extractors WG](https://github.com/marda-alliance/metadata_extractors/) to work on ideas regarding API development, wrapping existing codes and associated tools.
+Repository containing the reference implementation of the Datatractor API, published at [Datatractor Yard](https://yard.datatractors.org/).
 
-## `marda_extractors_api` package
+## `datatractor-beam` package
 
-There is a draft Python 3.10 package presented under the `./marda_extractors_api`
-directory.
-It has no non-optional dependencies and can be used to:
-- query the [Extractors Registry](https://marda-registry.fly.dev/) for extractors that support a given file type,
+This repository contains a draft Python 3.10 package, located under the `./beam` directory.
+The package can be used to:
+- query the registry of [Extractors](https://yard.datatractor.org/) for extractors that support a given file type,
 - install those extractors in a fresh Python virtual environment environment via `pip`,
 - invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.
 
 ### Installation
 
 ```shell
-git clone git@github.com:marda-alliance/metadata_extractors_api.git
-cd metadata_extractors_api;
+git clone git@github.com:datatractor/beam.git
+cd beam
 pip install .
 ```
 
 ### Usage
 
-Currently, you can use the `extract` function from the `metadata_extractors_api` inside your own Python code:
+Currently, you can use the `extract` function from the `beam` module inside your own Python code:
 
 ```python
-from marda_extractors_api import extract
+from beam import extract
 
 # extract(<input_type>, <input_path>)
 data = extract("./example.mpr",  "biologic-mpr")
 ```
 
-This example will install the first compatible `biologic-mpr` extractor it finds in the registry into a fresh virtualenv, and then execute it on the file at `example.mpr`.
+This example will install the first compatible `biologic-mpr` extractor it finds in the registry into a fresh virtualenv (under `./beam-venvs`), and then execute it on the file at `example.mpr`.
 
 By default, the `extract` function will attempt to use the extractor's Python-based invocation (i.e. the optional `preferred_mode="python"` argument is specified). This means the extractor will be executed from within python, and the returned `data` object will be a Python object as defined (and supported) by the extractor. This may require additional packages to be installed, for examples `pandas` or `xarray`, which are both supported via the installation command `pip install .[formats]` above. If you encounter the following traceback, a missing "format" (such as `xarray` here) is the likely reason:
 
@@ -56,7 +55,7 @@ ModuleNotFoundError: No module named 'xarray'
 Alternatively, if the `preferred_mode="cli"` argument is specified, the extractor will be executed using its command-line invocation. This means the output of the extractor will most likely be a file, which can be further specified using the `output_type` argument:
 
 ```python
-from marda_extractors_api import extract
+from beam import extract
 ret = extract("example.mpr", "biologic-mpr", output_path="output.nc", preferred_mode = "cli")
 ```
 
@@ -77,11 +76,11 @@ In this case, the `ret` will be empty bytes, and the output of the extractor sho
       across subprocesses without any extractor specific classes,
       e.g., raw JSON/Python dicts, pandas dataframes or xarray datasets (as
       optional requirements, by demand).
-- [ ] A command-line for quickly running e.g., `marda-extract <filename>`
+- [ ] A command-line for quickly running e.g., `beam <filename>`
 - [ ] Extractor scaffold/template/plugin
     - If it can be kept similarly low-dependency, this package could also
       implement an extractor scaffold for those who want to modify existing
-      extractors to follow the MaRDA API, and could automatically generate the
+      extractors to follow the Datatractor API, and could automatically generate the
       appropriate registry entries for them.
 - [ ] Testing and validation
     - We would like to move towards output validation, and this package would be

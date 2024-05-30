@@ -1,7 +1,7 @@
 import pathlib
 import urllib.request
 
-from marda_extractors_api import extract
+from beam import extract
 
 # Download an example MPR file from the registry
 download_path = pathlib.Path(__file__).parent / "data" / "example.mpr"

@@ -1,5 +1,5 @@
-MaRDA Metadata Extractors API
-================================
+Datatractor Beam
+================
 
 .. toctree::
    :maxdepth: 3
@@ -7,18 +7,15 @@ MaRDA Metadata Extractors API
    :hidden:
    :glob:
 
-   apidoc/marda_extractors_api
+   apidoc/beam
 
 
-``marda_extractors_api`` package
---------------------------------
+Documentation of Datatractor Beam, the reference implementation of the Datatractor API,
+published at `Datatractor Yard <https://yard.datatractors.org/>`_.
 
-There is a draft Python 3.10 package presented under the ``./marda_extractors_api``
-directory.
-It has no non-optional dependencies and can be used to:
-
-- query the `Extractors Registry <https://marda-registry.fly.dev/>`_ for extractors that support a given file type,
-- install those extractors in a fresh Python virtual environment environment via ``pip``,
+Datatractor :mod:`beam` is a draft Python 3.10 package, which can be used to:
+- query the registry of `Extractors <https://yard.datatractor.org/extractors/>`_ for extractors that support a given file type,
+- install those extractors in a fresh Python virtual environment environment via `pip`,
 - invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.
 
 Installation
@@ -26,18 +23,18 @@ Installation
 
 .. code-block:: bash
 
-   git clone git@github.com:marda-alliance/metadata_extractors_api.git
-   cd metadata_extractors_api;
+   git clone git@github.com:datatractor/beam.git
+   cd beam
    pip install .
 
 Usage
 -----
 
-Currently, you can use the ``extract`` function from the ``metadata_extractors_api`` inside your own Python code:
+Currently, you can use the ``extract`` function from the :mod:`beam` module inside your own Python code:
 
 .. code-block:: python
 
-   from marda_extractors_api import extract
+   from beam import extract
 
    # extract(<input_type>, <input_path>)
    data = extract("./example.mpr",  "biologic-mpr")
@@ -57,23 +54,23 @@ Alternatively, if the ``preferred_mode="cli"`` argument is specified, the extrac
 
 .. code-block:: python
 
-   from marda_extractors_api import extract
+   from beam import extract
    ret = extract("example.mpr", "biologic-mpr", output_path="output.nc", preferred_mode = "cli")
 
 In this case, the ``ret`` will be empty bytes, and the output of the extractor should appear in the ``output.nc`` file.
 
 
-.. |MMESchemaRepo| image:: https://badgen.net/static/marda-alliance/metadata_extractors_schema/?icon=github
+.. |SchemaRepo| image:: https://badgen.net/static/datatractor/schema/?icon=github
 
-.. _MMESchemaRepo: https://github.com/marda-alliance/metadata_extractors_schema/
+.. _SchemaRepo: https://github.com/datatractor/schema/
 
-.. |MMERegistryRepo| image:: https://badgen.net/static/marda-alliance/metadata_extractors_registry/?icon=github
+.. |YardRepo| image:: https://badgen.net/static/datatractor/yard/?icon=github
 
-.. _MMERegistryRepo: https://github.com/marda-alliance/metadata_extractors_registry/
+.. _YardRepo: https://github.com/datatractor/yard/
 
-.. |MMEAPIRepo| image:: https://badgen.net/static/marda-alliance/metadata_extractors_api/?icon=github
+.. |BeamRepo| image:: https://badgen.net/static/datatractor/beam/?icon=github
 
-.. _MMEAPIRepo: https://github.com/marda-alliance/metadata_extractors_api/
+.. _BeamRepo: https://github.com/datatractor/beam/
 
 .. |LinkML| replace:: :mod:`LinkML`
 
@@ -81,8 +78,8 @@ In this case, the ``ret`` will be empty bytes, and the output of the extractor s
 
 .. |FileType| replace:: :class:`FileType`
 
-.. _FileType: mme_schema/FileType.html#class-filetype
+.. _FileType: datatractor_schema/FileType.html#class-filetype
 
 .. |Extractor| replace:: :class:`Extractor`
 
-.. _Extractor: mme_schema/Extractor.html#class-extractor
+.. _Extractor: datatractor_schema/Extractor.html#class-extractor

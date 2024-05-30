@@ -13,14 +13,14 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join("..", "..", "marda_extractors_api")))
+sys.path.insert(0, os.path.abspath(os.path.join("..", "..", "beam")))
 
 version = "main"
 
 # -- Project information -----------------------------------------------------
 
-project = "marda_extractors_api"
-copyright = "2022 - 2023, MaRDA Metadata Extractors Team"
+project = "datatractor-beam"
+copyright = "2022 - 2024, Datatractor Team"
 author = "Matthew Evans, Peter Kraus"
 release = version
 
@@ -84,8 +84,8 @@ autodoc_pydantic_model_member_order = "bysource"
 # autodoc_pydantic_model_show_field_summary = False
 # autodoc_pydantic_model_member_order = "bysource"
 intersphinx_mapping = {
-    "mme_schema": (
-        "https://marda-alliance.github.io/metadata_extractors_schema/main/",
+    "datatractor_schema": (
+        "https://datatractor.github.io/schema/main/",
         None,
     ),
 }

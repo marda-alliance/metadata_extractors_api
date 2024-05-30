@@ -1,12 +1,13 @@
 """
-This script is intended as an example usage and proof-of-concept implementation of the
-API endpoints exposed on the `Extractors Registry <https://marda-registry.fly.dev/>`_.
+This script is intended as an example usage and reference implementation of the
+API endpoints exposed on the `datatractor yard <https://yard.datatractor.org/>`_.
 Currently, it can be used to:
 
-- query the `Extractors Registry <https://marda-registry.fly.dev/>`_ for extractors that
-  support a given file type,
+- query the registry of `Extractors <https://yard.datatractors.org/extractors/>`_ for
+  extractors that support a given file type,
 - install those extractors in a fresh Python virtual environment environment via `pip`,
-- invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.
+- invoke the extractor either in Python or at the CLI, producing Python objects or files
+  on disk.
 
 """
 
@@ -25,9 +26,9 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Callable, Optional
 
-__all__ = ("extract", "MardaExtractor")
+__all__ = ("extract", "Extractor")
 
-REGISTRY_BASE_URL = "https://marda-registry.fly.dev/api/v0.3.0"
+REGISTRY_BASE_URL = "https://yard.datatractor.org/api/v0.1.0"
 BIN = "Scripts" if platform.system() == "Windows" else "bin"
 
 
@@ -53,12 +54,11 @@ def extract(
     extractor_definition: dict | None = None,
     registry_base_url: str = REGISTRY_BASE_URL,
 ) -> Any:
-    """Parse a file given its path and file type ID
-    in the MaRDA registry.
+    """Parse a file given its path and file type.
 
     Parameters:
         input_path: The path or URL of the file to parse.
-        input_type: The ID of the file type in the MaRDA registry.
+        input_type: The ID of the `FileType` in the registry.
         output_path: The path to write the output to.
             If not provided, the output will be requested to be written
             to a file with the same name as the input file, but with a .json extension.
@@ -70,7 +70,8 @@ def extract(
         install: Whether to install the extractor package before running it. Defaults to True.
         extractor_definition: A dictionary containing the extractor definition to use instead
             of a registry lookup.
-        registry_base_url: The base URL of the MaRDA registry to use.
+        registry_base_url: The base URL of the registry to use. Defaults to the
+            datatractor yard.
 
     Returns:
         The output of the extractor, either a Python object or nothing.
@@ -122,7 +123,7 @@ def extract(
                 )
             entry_json = json.loads(entry.read().decode("utf-8"))["data"]
 
-            extractor = MardaExtractor(
+            plan = ExtractorPlan(
                 entry_json,
                 preferred_mode=preferred_mode,
                 install=install,
@@ -130,14 +131,14 @@ def extract(
             )
 
         else:
-            extractor = MardaExtractor(
+            plan = ExtractorPlan(
                 extractor_definition,
                 preferred_mode=preferred_mode,
                 install=install,
                 use_venv=use_venv,
             )
 
-        return extractor.execute(
+        return plan.execute(
             input_type=input_type,
             input_path=input_path,
             output_type=output_type,
@@ -148,7 +149,7 @@ def extract(
             tmp_path.unlink()
 
 
-class MardaExtractor:
+class ExtractorPlan:
     """A plan for parsing a file."""
 
     entry: dict
@@ -167,7 +168,7 @@ class MardaExtractor:
 
         if use_venv:
             self.venv_dir: Path | None = (
-                Path(__file__).parent.parent / "marda-venvs" / f"env-{self.entry['id']}"
+                Path(__file__).parent.parent / "beam-venvs" / f"env-{self.entry['id']}"
             )
             venv.create(self.venv_dir, with_pip=True)
         else:
@@ -179,7 +180,7 @@ class MardaExtractor:
     def install(self):
         """Follows the installation instructions for the entry.
 
-        Currently supports the following :doc:`mme_schema:mme_schema/InstallerTypes`
+        Currently supports the following :doc:`datatractor_schema:datatractor_schema/InstallerTypes`
 
            - ``"pip"``
 
@@ -225,7 +226,7 @@ class MardaExtractor:
     ):
         """Follows the required usage instructions for the entry.
 
-        Currently supports the following :doc:`mme_schema:mme_schema/UsageTypes`:
+        Currently supports the following :doc:`datatractor_schema:datatractor_schema/UsageTypes`:
 
           - `"cli"`
           - `"python"`
@@ -408,9 +409,10 @@ class MardaExtractor:
         output_path: Path | None = None,
         additional_template: dict | None = None,
     ) -> str:
-        """Reference implementation of templating in MaRDA Metadata Extractor Schemas.
+        """Reference implementation of templating in the datatractor schema.
 
-        See the :doc:`mme_schema:mme_schema/UsageTemplate` for details of the individual arguments.
+        See the :doc:`datatractor_schema:datatractor_schema/UsageTemplate` for details
+        of the individual arguments.
 
         Parameters:
             command: The command to apply the template to.

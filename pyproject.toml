@@ -9,10 +9,10 @@ source = "vcs"
 version-file = "_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["marda_extractors_api"]
+packages = ["beam"]
 
 [project]
-name = "marda-extractors-api"
+name = "datatractor-beam"
 readme = "README.md"
 dynamic = ["version"]
 classifiers = [
@@ -51,20 +51,20 @@ dev = [
 ]
 
 [project.urls]
-repository = "https://github.com/marda-alliance/metadata_extractors_api"
+repository = "https://github.com/datatractor/beam"
 
 [tool.ruff]
-select = ["E", "F", "I", "W", "Q"]
-ignore = ["E501", "E402"]
-fixable = ["A", "B", "C", "D", "E", "F", "I"]
-unfixable = []
 extend-exclude = [
     "providers",
 ]
 target-version = "py310"
-per-file-ignores = {}
+lint.select = ["E", "F", "I", "W", "Q"]
+lint.ignore = ["E501", "E402"]
+lint.fixable = ["A", "B", "C", "D", "E", "F", "I"]
+lint.unfixable = []
+lint.per-file-ignores = {}
 # Allow unused variables when underscore-prefixed.
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.mypy]
 ignore_missing_imports = true

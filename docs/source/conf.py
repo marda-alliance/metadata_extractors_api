@@ -19,7 +19,7 @@ version = "main"
 
 # -- Project information -----------------------------------------------------
 
-project = "datatractor-beam"
+project = "Datatractor Beam"
 copyright = "2022 - 2024, Datatractor Team"
 author = "Matthew Evans, Peter Kraus"
 release = version
@@ -64,13 +64,22 @@ html_theme_options = {
     "sticky_navigation": True,
     "navigation_depth": 6,
 }
-# html_logo = "./images/yadg.png"
-# html_favicon = "./images/yadg_ico.png"
+
+html_context = {
+    "display_github": True,
+    "github_user": "datatractor",
+    "github_repo": "beam",
+    "github_version": version,
+    "conf_py_path": "/docs/source/"
+}
+html_logo = "https://avatars.githubusercontent.com/u/166528759"
+html_favicon = "https://datatractor.github.io/schema/main/_images/166528759-32x32.png"
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ["images", "_static"]
+html_static_path = ["_static"]
 
 
 # -- Extension configuration -------------------------------------------------

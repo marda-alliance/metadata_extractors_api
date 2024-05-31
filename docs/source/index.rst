@@ -69,7 +69,7 @@ In this case, the ``ret`` will be empty bytes, and the output of the extractor s
 
 .. _yardrepo: https://github.com/datatractor/yard/
 
-.. |yardsite| image:: https://badgen.net/static/%F0%9F%9A%9Cdatatractor/yard
+.. |yardsite| image:: https://badgen.net/static/%F0%9F%9A%9C%20datatractor/yard
 
 .. _yardsite: https://yard.datatractor.org/
 

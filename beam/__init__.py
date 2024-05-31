@@ -8,7 +8,7 @@ API endpoints exposed on the |yardsite|_. Currently, it can be used to:
 - invoke the extractor either in Python or at the CLI, producing Python objects or files
   on disk.
 
-.. |yardsite| image:: https://badgen.net/static/%F0%9F%9A%9Cdatatractor/yard
+.. |yardsite| image:: https://badgen.net/static/%F0%9F%9A%9C%20datatractor/yard
 
 .. _yardsite: https://yard.datatractor.org/
 

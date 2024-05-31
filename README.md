@@ -1,3 +1,5 @@
+> Note: As of May 2024, this repository has been archived and the development of the reference implementation for metadata extractors API continues under the [`datatractor/beam`](https://github.com/datatractor/beam) project.
+
 <div align="center" style="padding-bottom: 1em;">
 <img width="100px" align="center" src="https://avatars.githubusercontent.com/u/74017645?s=200&v=4">
 </div>

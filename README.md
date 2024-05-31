@@ -12,12 +12,13 @@
 
 </div>
 
-Repository containing the reference implementation of the Datatractor API, published at [Datatractor Yard](https://yard.datatractors.org/).
+Repository containing the reference implementation of the Datatractor API, published at [![Datatractor Yard](https://badgen.net/static/%F0%9F%9A%9Cdatatractor/yard)](https://yard.datatractor.org/).
 
-## `datatractor-beam` package
+## `datatractor_beam` package
 
 This repository contains a draft Python 3.10 package, located under the `./beam` directory.
 The package can be used to:
+
 - query the registry of [Extractors](https://yard.datatractor.org/) for extractors that support a given file type,
 - install those extractors in a fresh Python virtual environment environment via `pip`,
 - invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.

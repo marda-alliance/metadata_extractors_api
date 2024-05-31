@@ -1,5 +1,5 @@
-Datatractor Beam
-================
+Datatractor Beam: Reference implementation of the Datatractor API
+=================================================================
 
 .. toctree::
    :maxdepth: 3
@@ -10,10 +10,11 @@ Datatractor Beam
    apidoc/beam
 
 
-Documentation of Datatractor Beam, the reference implementation of the Datatractor API,
-published at `Datatractor Yard <https://yard.datatractors.org/>`_.
+Documentation of |beamrepo|_, the reference implementation of the Datatractor API,
+available at |yardsite|_.
 
-Datatractor :mod:`beam` is a draft Python 3.10 package, which can be used to:
+Datatractor Beam contains :mod:`beam`, a draft Python 3.10 package, which can be used to:
+
 - query the registry of `Extractors <https://yard.datatractor.org/extractors/>`_ for extractors that support a given file type,
 - install those extractors in a fresh Python virtual environment environment via `pip`,
 - invoke the extractor either in Python or at the CLI, producing Python objects or files on disk.
@@ -60,17 +61,21 @@ Alternatively, if the ``preferred_mode="cli"`` argument is specified, the extrac
 In this case, the ``ret`` will be empty bytes, and the output of the extractor should appear in the ``output.nc`` file.
 
 
-.. |SchemaRepo| image:: https://badgen.net/static/datatractor/schema/?icon=github
+.. |schemarepo| image:: https://badgen.net/static/datatractor/schema/?icon=github
 
-.. _SchemaRepo: https://github.com/datatractor/schema/
+.. _schemarepo: https://github.com/datatractor/schema/
 
-.. |YardRepo| image:: https://badgen.net/static/datatractor/yard/?icon=github
+.. |yardrepo| image:: https://badgen.net/static/datatractor/yard/?icon=github
 
-.. _YardRepo: https://github.com/datatractor/yard/
+.. _yardrepo: https://github.com/datatractor/yard/
 
-.. |BeamRepo| image:: https://badgen.net/static/datatractor/beam/?icon=github
+.. |yardsite| image:: https://badgen.net/static/%F0%9F%9A%9Cdatatractor/yard
 
-.. _BeamRepo: https://github.com/datatractor/beam/
+.. _yardsite: https://yard.datatractor.org/
+
+.. |beamrepo| image:: https://badgen.net/static/datatractor/beam/?icon=github
+
+.. _beamrepo: https://github.com/datatractor/beam/
 
 .. |LinkML| replace:: :mod:`LinkML`
 

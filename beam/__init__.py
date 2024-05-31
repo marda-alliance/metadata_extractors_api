@@ -1,13 +1,16 @@
 """
 This script is intended as an example usage and reference implementation of the
-API endpoints exposed on the `datatractor yard <https://yard.datatractor.org/>`_.
-Currently, it can be used to:
+API endpoints exposed on the |yardsite|_. Currently, it can be used to:
 
-- query the registry of `Extractors <https://yard.datatractors.org/extractors/>`_ for
+- query the registry of `Extractors <https://yard.datatractor.org/extractors/>`_ for
   extractors that support a given file type,
 - install those extractors in a fresh Python virtual environment environment via `pip`,
 - invoke the extractor either in Python or at the CLI, producing Python objects or files
   on disk.
+
+.. |yardsite| image:: https://badgen.net/static/%F0%9F%9A%9Cdatatractor/yard
+
+.. _yardsite: https://yard.datatractor.org/
 
 """
 
@@ -71,7 +74,7 @@ def extract(
         extractor_definition: A dictionary containing the extractor definition to use instead
             of a registry lookup.
         registry_base_url: The base URL of the registry to use. Defaults to the
-            datatractor yard.
+            |yardsite|_.
 
     Returns:
         The output of the extractor, either a Python object or nothing.
@@ -409,7 +412,7 @@ class ExtractorPlan:
         output_path: Path | None = None,
         additional_template: dict | None = None,
     ) -> str:
-        """Reference implementation of templating in the datatractor schema.
+        """Reference implementation of templating in the Datatractor Schema.
 
         See the :doc:`datatractor_schema:datatractor_schema/UsageTemplate` for details
         of the individual arguments.
